@@ -67,11 +67,38 @@ fn roll_kind(kind: &String) -> i32 {
 
 fn roll(expression: &String) -> Roll {
     let split: Vec<String> = expression.split("d").map(|x| x.to_string()).filter(|x| !x.is_empty()).collect();
-    let dice = match split[0].parse::<u32>() {
-        Ok(num) => Dice{kind: split[1].clone(), quantity: num},
-        Err(_) => Dice{kind: split[1].clone(), quantity: 1},
+    let dice = match split.len() {
+        2 => match split[0].parse::<u32>() {
+            Ok(num) => Dice{kind: split[1].clone(), quantity: num},
+            Err(_) => Dice{kind: split[1].clone(), quantity: 1},
+        },
+        1 => Dice{kind: split[0].clone(), quantity: 1},
+        _ => Dice{kind: "6".to_string(), quantity: 1},
     };
     dice.roll()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_d6() {
+        for _ in 0..1000 {
+            let r = roll(&"d6".to_string());
+            assert_eq!(r.results.len(), 1);
+            assert!(r.results.iter().all(|&x| x >= 1 && x <= 6));
+        }
+    }
+
+    #[test]
+    fn test_4d10() {
+        for _ in 0..1000 {
+            let r = roll(&"4d10".to_string());
+            assert_eq!(r.results.len(), 4);
+            assert!(r.results.iter().all(|&x| x >= 1 && x <= 10), "{:?}", r.results);
+        }
+    }
 }
 
 fn roll_expressions(expressions: Vec<String>) -> RollGroup {
